@@ -105,9 +105,10 @@ public class BlobStore {
 
             // Update the index
             index.put(key, sha1);
-            append(key + INDEX_LINE_SEPARATOR + sha1 + "\n", indexFile, UTF_8);
+            append(indexLineFor(key, sha1), indexFile, UTF_8);
 
         } catch (IOException e) {
+            // Do our best to clean up the files, but do not check the return values
             if (tempFile.exists()) {
                 tempFile.delete();
             }
@@ -118,15 +119,50 @@ public class BlobStore {
         }
     }
 
+    private String indexLineFor(String key, String sha1) {
+        return key + INDEX_LINE_SEPARATOR + sha1 + "\n";
+    }
+
     public Optional<InputStream> get(String key) {
         if (index.containsKey(key)) {
             try {
                 InputStream in = new GZIPInputStream(new FileInputStream(new File(workingDirectory, index.get(key))));
                 return Optional.of(in);
+            } catch (FileNotFoundException e) {
+                index.remove(key);
+                rewriteIndex();
+                return Optional.absent();
+            } catch (IOException e) {
+                 throw new BlobStoreException(e);
+            }
+        }
+        return Optional.absent();
+    }
+    
+    private void rewriteIndex() {
+        if (!indexFile.delete()) {
+            throw new BlobStoreException("Could not delete " + indexFile);
+        }
+        for (String key : index.keySet()) {
+            try {
+                append(indexLineFor(key, index.get(key)), indexFile, UTF_8);
             } catch (IOException e) {
                 throw new BlobStoreException(e);
             }
         }
-        return Optional.absent();
+    }
+    
+    public void remove(String key) {
+        if (index.containsKey(key)) {
+            String sha1 = index.get(key);
+            index.remove(key);
+            File blob = new File(workingDirectory, sha1);
+            if (blob.exists()) {
+                if (!blob.delete()) {
+                    throw new BlobStoreException("Could not delete " + blob);
+                }
+            }
+            rewriteIndex();
+        }
     }
 }

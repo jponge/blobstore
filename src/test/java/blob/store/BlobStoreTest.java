@@ -117,4 +117,31 @@ public class BlobStoreTest {
         assertThat(content, is("Hello world!"));
         assertThat(store.get("plop").orNull(), is(nullValue()));
     }
+    
+    @Test
+    public void verify_blob_removal() throws IOException {
+        BlobStore store = new BlobStore(temporaryFolder.getRoot());
+        
+        store.put("POM", newInputStreamSupplier(new File("pom.xml")));        
+        assertThat(store.getIndex().size(), is(1));
+
+        store.remove("POM");
+        assertThat(store.getIndex().size(), is(0));
+    }
+
+    @Test
+    public void verify_blob_external_removal() throws IOException {
+        BlobStore store = new BlobStore(temporaryFolder.getRoot());
+
+        store.put("sample", newInputStreamSupplier(new File("src/test/resources/sample")));
+        assertThat(store.getIndex().size(), is(1));
+        assertThat(store.get("sample").orNull(), is(notNullValue()));
+        
+        File blob = new File(temporaryFolder.getRoot(), "ae1a077157f51540d0b082689b91d7283d7170f5");
+        if (!blob.delete()) {
+            throw new RuntimeException(blob + " could not be deleted");
+        }
+        assertThat(store.get("sample").orNull(), is(nullValue()));
+        assertThat(store.getIndex().size(), is(0));
+    }
 }
