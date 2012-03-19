@@ -1,20 +1,26 @@
 package blob.store;
 
-import com.google.common.base.Charsets;
 import com.google.common.base.Splitter;
-import com.google.common.collect.Maps;
+import com.google.common.hash.Hasher;
+import com.google.common.hash.Hashing;
+import com.google.common.io.*;
 
 import java.io.File;
+import java.io.FileOutputStream;
 import java.io.IOException;
-import java.util.Collections;
+import java.io.InputStream;
 import java.util.Iterator;
 import java.util.Map;
 import java.util.NoSuchElementException;
+import java.util.zip.GZIPOutputStream;
 
 import static com.google.common.base.Charsets.UTF_8;
 import static com.google.common.collect.Maps.newHashMap;
+import static com.google.common.hash.Hashing.sha1;
+import static com.google.common.io.ByteStreams.*;
+import static com.google.common.io.Files.append;
 import static com.google.common.io.Files.readLines;
-import static java.util.Collections.enumeration;
+import static java.util.Collections.shuffle;
 import static java.util.Collections.unmodifiableMap;
 
 public class BlobStore {
@@ -62,5 +68,52 @@ public class BlobStore {
 
     public Map<String, String> getIndex() {
         return unmodifiableMap(index);
+    }
+
+    public void put(String key, InputSupplier<? extends InputStream> supplier) {
+        File tempFile = new File(workingDirectory, "TEMP");
+        File blobFile = null;
+
+        try {
+            FileOutputStream fileOutputStream = new FileOutputStream(tempFile);
+            final GZIPOutputStream gzipOutputStream = new GZIPOutputStream(fileOutputStream);
+
+            ByteProcessor<String> processor = new ByteProcessor<String>() {
+                Hasher hasher = sha1().newHasher();
+
+                @Override
+                public boolean processBytes(byte[] bytes, int offset, int length) throws IOException {
+                    hasher.putBytes(bytes, offset, length);
+                    gzipOutputStream.write(bytes, offset, length);
+                    return true;
+                }
+
+                @Override
+                public String getResult() {
+                    return hasher.hash().toString();
+                }
+            };
+
+            // Compress the blob files and compute the SHA1
+            String sha1 = readBytes(supplier, processor);
+            blobFile = new File(workingDirectory, sha1);
+            gzipOutputStream.close();
+            if (!tempFile.renameTo(blobFile)) {
+                throw new BlobStoreException("Could not rename " + tempFile + " to " + sha1);
+            }
+
+            // Update the index
+            index.put(key, sha1);
+            append(key + INDEX_LINE_SEPARATOR + sha1, indexFile, UTF_8);
+
+        } catch (IOException e) {
+            if (tempFile.exists()) {
+                tempFile.delete();
+            }
+            if (blobFile != null && blobFile.exists()) {
+                blobFile.delete();
+            }
+            throw new BlobStoreException(e);
+        }
     }
 }

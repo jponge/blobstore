@@ -1,6 +1,5 @@
 package blob.store;
 
-import com.google.common.base.Charsets;
 import com.google.common.io.Files;
 import org.junit.Rule;
 import org.junit.Test;
@@ -11,6 +10,7 @@ import java.io.IOException;
 import java.util.Map;
 
 import static com.google.common.base.Charsets.*;
+import static com.google.common.io.Files.newInputStreamSupplier;
 import static org.junit.Assert.*;
 import static org.hamcrest.CoreMatchers.*;
 import static org.junit.matchers.JUnitMatchers.*;
@@ -63,5 +63,17 @@ public class BlobStoreTest {
         File indexFile = temporaryFolder.newFile("index");
         Files.append("BOO!", indexFile, UTF_8);
         new BlobStore(temporaryFolder.getRoot());
+    }
+    
+    @Test
+    public void store_some_files() throws IOException {
+        BlobStore store = new BlobStore(temporaryFolder.getRoot());
+
+        store.put("FOO", newInputStreamSupplier(new File("pom.xml")));
+        store.put("sample", newInputStreamSupplier(new File("src/test/resources/sample")));
+
+        assertThat(store.getIndex().size(), is(2));
+        assertThat(store.getIndex().get("sample"), is("ae1a077157f51540d0b082689b91d7283d7170f5"));
+        assertThat(new File(temporaryFolder.getRoot(), "ae1a077157f51540d0b082689b91d7283d7170f5").exists(), is(true));
     }
 }
