@@ -76,4 +76,13 @@ public class BlobStoreTest {
         assertThat(store.getIndex().get("sample"), is("ae1a077157f51540d0b082689b91d7283d7170f5"));
         assertThat(new File(temporaryFolder.getRoot(), "ae1a077157f51540d0b082689b91d7283d7170f5").exists(), is(true));
     }
+    
+    @Test
+    public void verify_index_over_existing_store() throws IOException {
+        store_some_files();        
+        BlobStore store = new BlobStore(temporaryFolder.getRoot());
+
+        assertThat(store.getIndex().size(), is(2));
+        assertThat(store.getIndex().get("sample"), is("ae1a077157f51540d0b082689b91d7283d7170f5"));
+    }
 }

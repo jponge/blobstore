@@ -104,7 +104,7 @@ public class BlobStore {
 
             // Update the index
             index.put(key, sha1);
-            append(key + INDEX_LINE_SEPARATOR + sha1, indexFile, UTF_8);
+            append(key + INDEX_LINE_SEPARATOR + sha1 + "\n", indexFile, UTF_8);
 
         } catch (IOException e) {
             if (tempFile.exists()) {
