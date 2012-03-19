@@ -1,17 +1,16 @@
 package blob.store;
 
+import com.google.common.base.Optional;
 import com.google.common.base.Splitter;
 import com.google.common.hash.Hasher;
 import com.google.common.hash.Hashing;
 import com.google.common.io.*;
 
-import java.io.File;
-import java.io.FileOutputStream;
-import java.io.IOException;
-import java.io.InputStream;
+import java.io.*;
 import java.util.Iterator;
 import java.util.Map;
 import java.util.NoSuchElementException;
+import java.util.zip.GZIPInputStream;
 import java.util.zip.GZIPOutputStream;
 
 import static com.google.common.base.Charsets.UTF_8;
@@ -96,10 +95,12 @@ public class BlobStore {
 
             // Compress the blob files and compute the SHA1
             String sha1 = readBytes(supplier, processor);
-            blobFile = new File(workingDirectory, sha1);
             gzipOutputStream.close();
-            if (!tempFile.renameTo(blobFile)) {
-                throw new BlobStoreException("Could not rename " + tempFile + " to " + sha1);
+            blobFile = new File(workingDirectory, sha1);
+            if (!blobFile.exists()) {
+                if (!tempFile.renameTo(blobFile)) {
+                    throw new BlobStoreException("Could not rename " + tempFile + " to " + sha1);
+                }
             }
 
             // Update the index
@@ -115,5 +116,17 @@ public class BlobStore {
             }
             throw new BlobStoreException(e);
         }
+    }
+
+    public Optional<InputStream> get(String key) {
+        if (index.containsKey(key)) {
+            try {
+                InputStream in = new GZIPInputStream(new FileInputStream(new File(workingDirectory, index.get(key))));
+                return Optional.of(in);
+            } catch (IOException e) {
+                throw new BlobStoreException(e);
+            }
+        }
+        return Optional.absent();
     }
 }

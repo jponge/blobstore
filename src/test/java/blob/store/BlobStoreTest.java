@@ -1,16 +1,23 @@
 package blob.store;
 
+import com.google.common.io.ByteStreams;
+import com.google.common.io.CharStreams;
 import com.google.common.io.Files;
+import com.google.common.io.InputSupplier;
 import org.junit.Rule;
 import org.junit.Test;
 import org.junit.rules.TemporaryFolder;
 
 import java.io.File;
 import java.io.IOException;
+import java.io.StringReader;
 import java.util.Map;
 
 import static com.google.common.base.Charsets.*;
+import static com.google.common.io.CharStreams.newReaderSupplier;
+import static com.google.common.io.Files.append;
 import static com.google.common.io.Files.newInputStreamSupplier;
+import static com.google.common.io.Files.newOutputStreamSupplier;
 import static org.junit.Assert.*;
 import static org.hamcrest.CoreMatchers.*;
 import static org.junit.matchers.JUnitMatchers.*;
@@ -84,5 +91,30 @@ public class BlobStoreTest {
 
         assertThat(store.getIndex().size(), is(2));
         assertThat(store.getIndex().get("sample"), is("ae1a077157f51540d0b082689b91d7283d7170f5"));
+    }
+
+    @Test
+    public void store_duplicate() throws IOException {
+        store_some_files();
+        BlobStore store = new BlobStore(temporaryFolder.getRoot());
+
+        store.put("sample-bis", newInputStreamSupplier(new File("src/test/resources/sample")));
+        assertThat(store.getIndex().size(), is(3));
+        assertThat(store.getIndex().get("sample-bis"), is("ae1a077157f51540d0b082689b91d7283d7170f5"));
+    }
+
+    @Test
+    public void verify_store_then_get() throws IOException {
+        BlobStore store = new BlobStore(temporaryFolder.getRoot());
+        
+        File temp = File.createTempFile("store", "get");
+        append("Hello world!", temp, UTF_8);
+        store.put("hello.txt", newInputStreamSupplier(temp));
+
+        ByteStreams.copy(store.get("hello.txt").get(), newOutputStreamSupplier(temp));
+        String content = Files.readFirstLine(temp, UTF_8);
+        
+        assertThat(content, is("Hello world!"));
+        assertThat(store.get("plop").orNull(), is(nullValue()));
     }
 }
