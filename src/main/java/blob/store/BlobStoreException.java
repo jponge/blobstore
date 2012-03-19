@@ -1,4 +1,4 @@
-package blob.store.BlobStore;
+package blob.store;
 
 public class BlobStoreException extends RuntimeException {
 
