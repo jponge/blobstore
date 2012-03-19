@@ -36,12 +36,8 @@ public class BlobStore {
         }
     }
 
-    public Map<String, String> getIndex() {
-        return unmodifiableMap(index);
-    }
-
     private void ensureValidWorkingDirectory(File workingDirectory) {
-        if (workingDirectory.exists() && workingDirectory.isFile()) {
+        if (workingDirectory.isFile()) {
             throw new BlobStoreException(workingDirectory.getAbsolutePath() + " already exists and is a file");
         } else if (!workingDirectory.exists()) {
             if (!workingDirectory.mkdirs()) {
@@ -62,5 +58,9 @@ public class BlobStore {
         } catch (NoSuchElementException e) {
             throw new BlobStoreException("Corrupt index file", e);
         }
+    }
+
+    public Map<String, String> getIndex() {
+        return unmodifiableMap(index);
     }
 }
