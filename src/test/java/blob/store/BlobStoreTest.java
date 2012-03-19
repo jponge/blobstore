@@ -127,6 +127,8 @@ public class BlobStoreTest {
 
         store.remove("POM");
         assertThat(store.getIndex().size(), is(0));
+        
+        store.remove("Hey!");
     }
 
     @Test
