@@ -1,0 +1,7 @@
+RULE inject a fault into BlobStore#rewriteIndex() to fail on delete()
+CLASS blob.store.BlobStore
+METHOD rewriteIndex
+AFTER INVOKE java.io.File.delete()
+IF true
+DO $! = false
+ENDRULE

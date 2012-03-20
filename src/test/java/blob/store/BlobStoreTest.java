@@ -225,4 +225,23 @@ public class BlobStoreTest {
         store.put("sample", newInputStreamSupplier(new File("src/test/resources/sample")));
         store.get("sample");
     }
+
+    @BMScript(value="fail_to_delete_index", dir= BYTEMAN_SCRIPTS)
+    @Test(expected = BlobStoreException.class)
+    public void fail_to_delete_index() throws IOException {
+        BlobStore store = new BlobStore(temporaryFolder.getRoot());
+        store.put("POM", newInputStreamSupplier(new File("pom.xml")));
+        store.remove("POM");
+    }
+
+    @BMScript(value="fail_to_write_entries_in_index", dir= BYTEMAN_SCRIPTS)
+    @Test(expected = BlobStoreException.class)
+    public void fail_to_write_entries_in_index() throws IOException {
+        BlobStore store = new BlobStore(temporaryFolder.getRoot());
+        store.put("POM", newInputStreamSupplier(new File("pom.xml")));
+        store.put("PAM", newInputStreamSupplier(new File("pom.xml")));
+        store.put("PIM", newInputStreamSupplier(new File("pom.xml")));
+        store.put("OMG", newInputStreamSupplier(new File("pom.xml")));
+        store.remove("OMG");
+    }
 }

@@ -152,12 +152,13 @@ public class BlobStore {
         if (!indexFile.delete()) {
             throw new BlobStoreException("Could not delete " + indexFile);
         }
-        for (String key : index.keySet()) {
-            try {
+        try {
+            for (String key : index.keySet()) {
                 append(indexLineFor(key, index.get(key)), indexFile, UTF_8);
-            } catch (IOException e) {
-                throw new BlobStoreException(e);
             }
+        } catch (IOException e) {
+            // This implementation has a vulnerability window for loosing the index!
+            throw new BlobStoreException(e);
         }
     }
 

@@ -1,0 +1,15 @@
+RULE create a countdown when entering BlobStore#rewriteIndex()
+CLASS blob.store.BlobStore
+METHOD rewriteIndex
+AT ENTRY
+IF true
+DO createCountDown("Altair", 1)
+ENDRULE
+
+RULE inject a fault into BlobStore#put() to fail a appending to the index
+CLASS com.google.common.io.Files
+METHOD append
+AT ENTRY
+IF countDown("Altair")
+DO throw new java.io.IOException("Simulating a I/O error")
+ENDRULE
