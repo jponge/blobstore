@@ -1,0 +1,7 @@
+RULE inject a fault into BlobStore#put() while handling some bytes
+CLASS blob.store.BlobStore$1
+METHOD processBytes
+AT ENTRY
+IF true
+DO throw new java.io.IOException("Simulating an I/O error")
+ENDRULE

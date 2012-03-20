@@ -29,7 +29,8 @@ import static org.junit.matchers.JUnitMatchers.*;
 @RunWith(BMUnitRunner.class)
 public class BlobStoreTest {
 
-    private static final String BYTEMAN_SCRIPTS = "target/test-classes/byteman";
+    static final String BYTEMAN_SCRIPTS = "target/test-classes/byteman";
+    static final String SAMPLE_SHA1 = "ae1a077157f51540d0b082689b91d7283d7170f5";
 
     @Rule
     public TemporaryFolder temporaryFolder = new TemporaryFolder();
@@ -87,8 +88,8 @@ public class BlobStoreTest {
         store.put("sample", newInputStreamSupplier(new File("src/test/resources/sample")));
 
         assertThat(store.getIndex().size(), is(2));
-        assertThat(store.getIndex().get("sample"), is("ae1a077157f51540d0b082689b91d7283d7170f5"));
-        assertThat(new File(temporaryFolder.getRoot(), "ae1a077157f51540d0b082689b91d7283d7170f5").exists(), is(true));
+        assertThat(store.getIndex().get("sample"), is(SAMPLE_SHA1));
+        assertThat(new File(temporaryFolder.getRoot(), SAMPLE_SHA1).exists(), is(true));
     }
     
     @Test
@@ -97,7 +98,7 @@ public class BlobStoreTest {
         BlobStore store = new BlobStore(temporaryFolder.getRoot());
 
         assertThat(store.getIndex().size(), is(2));
-        assertThat(store.getIndex().get("sample"), is("ae1a077157f51540d0b082689b91d7283d7170f5"));
+        assertThat(store.getIndex().get("sample"), is(SAMPLE_SHA1));
     }
 
     @Test
@@ -107,7 +108,7 @@ public class BlobStoreTest {
 
         store.put("sample-bis", newInputStreamSupplier(new File("src/test/resources/sample")));
         assertThat(store.getIndex().size(), is(3));
-        assertThat(store.getIndex().get("sample-bis"), is("ae1a077157f51540d0b082689b91d7283d7170f5"));
+        assertThat(store.getIndex().get("sample-bis"), is(SAMPLE_SHA1));
     }
 
     @Test
@@ -145,8 +146,8 @@ public class BlobStoreTest {
         store.put("sample", newInputStreamSupplier(new File("src/test/resources/sample")));
         assertThat(store.getIndex().size(), is(1));
         assertThat(store.get("sample").orNull(), is(notNullValue()));
-        
-        File blob = new File(temporaryFolder.getRoot(), "ae1a077157f51540d0b082689b91d7283d7170f5");
+
+        File blob = new File(temporaryFolder.getRoot(), SAMPLE_SHA1);
         if (!blob.delete()) {
             throw new RuntimeException(blob + " could not be deleted");
         }
@@ -184,7 +185,36 @@ public class BlobStoreTest {
     @Test(expected = BlobStoreException.class)
     public void fail_to_rename_a_freshly_compressed_unnamed_blob() throws IOException {
         BlobStore store = new BlobStore(temporaryFolder.getRoot());
-
         store.put("sample", newInputStreamSupplier(new File("src/test/resources/sample")));
+    }
+
+    @BMScript(value="fail_to_compress_and_hash_blob_with_io_error", dir= BYTEMAN_SCRIPTS)
+    @Test
+    public void fail_to_compress_and_hash_blob_with_io_error() throws IOException {
+        BlobStore store = new BlobStore(temporaryFolder.getRoot());
+        try {
+            store.put("sample", newInputStreamSupplier(new File("src/test/resources/sample")));
+            fail("A BlobStoreException should have been throw");
+        } catch (BlobStoreException ignored) {
+            File temp = new File(temporaryFolder.getRoot(), "TEMP");
+            File blob = new File(temporaryFolder.getRoot(), SAMPLE_SHA1);
+            assertThat(temp.exists(), is(false));
+            assertThat(blob.exists(), is(false));
+        }
+    }
+
+    @BMScript(value="fail_to_append_in_index", dir= BYTEMAN_SCRIPTS)
+    @Test
+    public void fail_to_append_in_index() throws IOException {
+        BlobStore store = new BlobStore(temporaryFolder.getRoot());
+        try {
+            store.put("sample", newInputStreamSupplier(new File("src/test/resources/sample")));
+            fail("A BlobStoreException should have been throw");
+        } catch (BlobStoreException ignored) {
+            File temp = new File(temporaryFolder.getRoot(), "TEMP");
+            File blob = new File(temporaryFolder.getRoot(), SAMPLE_SHA1);
+            assertThat(temp.exists(), is(false));
+            assertThat(blob.exists(), is(false));
+        }
     }
 }

@@ -1,0 +1,7 @@
+RULE inject a fault into BlobStore#put() to fail a appending to the index
+CLASS com.google.common.io.Files
+METHOD append
+AT ENTRY
+IF true
+DO throw new java.io.IOException("Simulating a I/O error")
+ENDRULE
