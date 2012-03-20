@@ -1,0 +1,7 @@
+RULE inject a fault into BlobStore#ensureValidWorkingDirectory() to fail on mkdirs()
+CLASS blob.store.BlobStore
+METHOD ensureValidWorkingDirectory(File)
+AFTER INVOKE java.io.File.mkdirs()
+IF true
+DO $! = false
+ENDRULE

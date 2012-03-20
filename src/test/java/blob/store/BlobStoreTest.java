@@ -5,6 +5,7 @@ import com.google.common.io.CharStreams;
 import com.google.common.io.Files;
 import com.google.common.io.InputSupplier;
 import org.jboss.byteman.contrib.bmunit.BMRule;
+import org.jboss.byteman.contrib.bmunit.BMScript;
 import org.jboss.byteman.contrib.bmunit.BMUnitRunner;
 import org.junit.Rule;
 import org.junit.Test;
@@ -162,5 +163,11 @@ public class BlobStoreTest {
     )
     public void byteman_check_traceln() {
         new BlobStore(temporaryFolder.getRoot());
+    }
+
+    @BMScript(value="create_but_fail_to_mkdir", dir="target/test-classes/byteman")
+    @Test(expected = BlobStoreException.class)
+    public void create_but_fail_to_mkdir() throws IOException {
+        new BlobStore(new File(temporaryFolder.getRoot(), "missing"));
     }
 }
