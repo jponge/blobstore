@@ -4,9 +4,12 @@ import com.google.common.io.ByteStreams;
 import com.google.common.io.CharStreams;
 import com.google.common.io.Files;
 import com.google.common.io.InputSupplier;
+import org.jboss.byteman.contrib.bmunit.BMRule;
+import org.jboss.byteman.contrib.bmunit.BMUnitRunner;
 import org.junit.Rule;
 import org.junit.Test;
 import org.junit.rules.TemporaryFolder;
+import org.junit.runner.RunWith;
 
 import java.io.File;
 import java.io.IOException;
@@ -22,6 +25,7 @@ import static org.junit.Assert.*;
 import static org.hamcrest.CoreMatchers.*;
 import static org.junit.matchers.JUnitMatchers.*;
 
+@RunWith(BMUnitRunner.class)
 public class BlobStoreTest {
 
     @Rule
@@ -145,5 +149,18 @@ public class BlobStoreTest {
         }
         assertThat(store.get("sample").orNull(), is(nullValue()));
         assertThat(store.getIndex().size(), is(0));
+    }
+
+    // Tests with Byteman ........................................................................................... //
+
+    @Test
+    @BMRule(name = "Trace constructor of BlobStore",
+            targetClass = "blob.store.BlobStore",
+            targetMethod = "<init>",
+            condition = "true",
+            action = "traceln(\"byteman_check_traceln() worked\")"
+    )
+    public void byteman_check_traceln() {
+        new BlobStore(temporaryFolder.getRoot());
     }
 }
