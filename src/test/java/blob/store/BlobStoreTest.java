@@ -217,4 +217,12 @@ public class BlobStoreTest {
             assertThat(blob.exists(), is(false));
         }
     }
+
+    @BMScript(value="fail_with_io_error_on_get", dir= BYTEMAN_SCRIPTS)
+    @Test(expected = BlobStoreException.class)
+    public void fail_with_io_error_on_get() throws IOException {
+        BlobStore store = new BlobStore(temporaryFolder.getRoot());
+        store.put("sample", newInputStreamSupplier(new File("src/test/resources/sample")));
+        store.get("sample");
+    }
 }

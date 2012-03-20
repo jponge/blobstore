@@ -1,0 +1,7 @@
+RULE inject a fault into BlobStore#ensureValidWorkingDirectory() to fail on mkdirs()
+CLASS blob.store.BlobStore
+METHOD openBlobStream
+AT ENTRY
+IF true
+DO throw new IOException("Simulating a corrupt GZIP stream")
+ENDRULE

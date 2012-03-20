@@ -126,19 +126,28 @@ public class BlobStore {
     public Optional<InputStream> get(String key) {
         if (index.containsKey(key)) {
             try {
-                InputStream in = new GZIPInputStream(new FileInputStream(new File(workingDirectory, index.get(key))));
+                InputStream in = openBlobStream(key);
                 return Optional.of(in);
             } catch (FileNotFoundException e) {
-                index.remove(key);
-                rewriteIndex();
+                removeInvalidKeyAndRewriteIndex(key);
                 return Optional.absent();
             } catch (IOException e) {
-                 throw new BlobStoreException(e);
+                removeInvalidKeyAndRewriteIndex(key);
+                throw new BlobStoreException(e);
             }
         }
         return Optional.absent();
     }
-    
+
+    private GZIPInputStream openBlobStream(String key) throws IOException {
+        return new GZIPInputStream(new FileInputStream(new File(workingDirectory, index.get(key))));
+    }
+
+    private void removeInvalidKeyAndRewriteIndex(String key) {
+        index.remove(key);
+        rewriteIndex();
+    }
+
     private void rewriteIndex() {
         if (!indexFile.delete()) {
             throw new BlobStoreException("Could not delete " + indexFile);
@@ -151,7 +160,7 @@ public class BlobStore {
             }
         }
     }
-    
+
     public void remove(String key) {
         if (index.containsKey(key)) {
             String sha1 = index.get(key);
