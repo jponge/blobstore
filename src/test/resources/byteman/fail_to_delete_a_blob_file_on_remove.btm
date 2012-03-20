@@ -1,0 +1,7 @@
+RULE inject a fault into BlobStore#remove() to fail on delete()
+CLASS blob.store.BlobStore
+METHOD remove
+AFTER INVOKE java.io.File.delete()
+IF true
+DO $! = false
+ENDRULE

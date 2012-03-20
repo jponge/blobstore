@@ -244,4 +244,20 @@ public class BlobStoreTest {
         store.put("OMG", newInputStreamSupplier(new File("pom.xml")));
         store.remove("OMG");
     }
+
+    @BMScript(value="fail_to_delete_a_blob_file_on_remove", dir= BYTEMAN_SCRIPTS)
+    @Test(expected = BlobStoreException.class)
+    public void fail_to_delete_a_blob_file_on_remove() throws IOException {
+        BlobStore store = new BlobStore(temporaryFolder.getRoot());
+        store.put("OMG", newInputStreamSupplier(new File("pom.xml")));
+        store.remove("OMG");
+    }
+
+    @BMScript(value="simulate_vanished_blob_file_on_remove", dir= BYTEMAN_SCRIPTS)
+    @Test
+    public void simulate_vanished_blob_file_on_remove() throws IOException {
+        BlobStore store = new BlobStore(temporaryFolder.getRoot());
+        store.put("OMG", newInputStreamSupplier(new File("pom.xml")));
+        store.remove("OMG");
+    }
 }

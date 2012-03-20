@@ -1,0 +1,7 @@
+RULE make as if the blob file had disappeared
+CLASS blob.store.BlobStore
+METHOD remove
+AFTER INVOKE java.io.File.exists()
+IF true
+DO $! = false
+ENDRULE
