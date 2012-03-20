@@ -25,6 +25,11 @@
     <orderEntry type="library" scope="TEST" name="Maven: org.jboss.byteman:byteman-install:2.0.1" level="project" />
     <orderEntry type="library" name="Maven: com.sun:tools:1.6" level="project" />
     <orderEntry type="library" scope="TEST" name="Maven: org.jboss.byteman:byteman-bmunit:2.0.1" level="project" />
+    <orderEntry type="library" scope="TEST" name="Maven: org.jboss.byteman:byteman:2.0.1" level="project" />
+    <orderEntry type="library" scope="TEST" name="Maven: org.jboss.byteman:byteman-submit:2.0.1" level="project" />
+    <orderEntry type="library" scope="TEST" name="Maven: org.jboss.byteman:byteman-install:2.0.1" level="project" />
+    <orderEntry type="library" name="Maven: com.sun:tools:1.6" level="project" />
+    <orderEntry type="library" scope="TEST" name="Maven: org.jboss.byteman:byteman-bmunit:2.0.1" level="project" />
     <orderEntry type="library" name="Maven: com.google.guava:guava:11.0.2" level="project" />
     <orderEntry type="library" name="Maven: com.google.code.findbugs:jsr305:1.3.9" level="project" />
     <orderEntry type="library" scope="TEST" name="Maven: junit:junit:4.10" level="project" />

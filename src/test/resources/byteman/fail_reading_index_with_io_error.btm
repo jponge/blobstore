@@ -1,0 +1,7 @@
+RULE inject a fault into BlobStore#populateIndex() to fail with an IOException
+CLASS com.google.common.io.Files
+METHOD readLines
+AT ENTRY
+IF true
+DO throw new java.io.IOException("Simulating a I/O error")
+ENDRULE

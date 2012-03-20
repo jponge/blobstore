@@ -29,6 +29,8 @@ import static org.junit.matchers.JUnitMatchers.*;
 @RunWith(BMUnitRunner.class)
 public class BlobStoreTest {
 
+    private static final String BYTEMAN_SCRIPTS = "target/test-classes/byteman";
+
     @Rule
     public TemporaryFolder temporaryFolder = new TemporaryFolder();
 
@@ -165,9 +167,16 @@ public class BlobStoreTest {
         new BlobStore(temporaryFolder.getRoot());
     }
 
-    @BMScript(value="create_but_fail_to_mkdir", dir="target/test-classes/byteman")
+    @BMScript(value="create_but_fail_to_mkdir", dir= BYTEMAN_SCRIPTS)
     @Test(expected = BlobStoreException.class)
     public void create_but_fail_to_mkdir() throws IOException {
         new BlobStore(new File(temporaryFolder.getRoot(), "missing"));
+    }
+
+    @BMScript(value="fail_reading_index_with_io_error", dir= BYTEMAN_SCRIPTS)
+    @Test(expected = BlobStoreException.class)
+    public void fail_reading_index_with_io_error() throws IOException {
+        create_in_existing_dir_with_fake_index();
+        new BlobStore(temporaryFolder.getRoot());
     }
 }
