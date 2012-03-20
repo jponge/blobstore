@@ -35,7 +35,7 @@ public class BlobStoreTest {
 
     @Test
     public void create_in_nonexistent_dir() throws IOException {
-        BlobStore store = new BlobStore(temporaryFolder.newFolder());
+        BlobStore store = new BlobStore(new File(temporaryFolder.getRoot(), "missing"));
         assertThat(store.getIndex().size(), is(0));
     }
 
