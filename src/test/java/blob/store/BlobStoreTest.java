@@ -179,4 +179,12 @@ public class BlobStoreTest {
         create_in_existing_dir_with_fake_index();
         new BlobStore(temporaryFolder.getRoot());
     }
+
+    @BMScript(value="fail_to_rename_a_freshly_compressed_unnamed_blob", dir= BYTEMAN_SCRIPTS)
+    @Test(expected = BlobStoreException.class)
+    public void fail_to_rename_a_freshly_compressed_unnamed_blob() throws IOException {
+        BlobStore store = new BlobStore(temporaryFolder.getRoot());
+
+        store.put("sample", newInputStreamSupplier(new File("src/test/resources/sample")));
+    }
 }

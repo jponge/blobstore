@@ -1,0 +1,7 @@
+RULE inject a fault into BlobStore#put() to fail on renameTo()
+CLASS blob.store.BlobStore
+METHOD put
+AFTER INVOKE java.io.File.renameTo
+IF true
+DO $! = false
+ENDRULE
