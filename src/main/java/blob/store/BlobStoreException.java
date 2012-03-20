@@ -22,6 +22,13 @@
 
 package blob.store;
 
+/**
+ * An unchecked exception to wrap all errors from a blob store.
+ *
+ * @author Julien Ponge
+ * @see blob.store.BlobStore
+ * @see java.lang.RuntimeException
+ */
 public class BlobStoreException extends RuntimeException {
 
     public BlobStoreException() {

@@ -25,8 +25,8 @@ package blob.store;
 import com.google.common.base.Optional;
 import com.google.common.base.Splitter;
 import com.google.common.hash.Hasher;
-import com.google.common.hash.Hashing;
-import com.google.common.io.*;
+import com.google.common.io.ByteProcessor;
+import com.google.common.io.InputSupplier;
 
 import java.io.*;
 import java.util.Iterator;
@@ -38,12 +38,26 @@ import java.util.zip.GZIPOutputStream;
 import static com.google.common.base.Charsets.UTF_8;
 import static com.google.common.collect.Maps.newHashMap;
 import static com.google.common.hash.Hashing.sha1;
-import static com.google.common.io.ByteStreams.*;
+import static com.google.common.io.ByteStreams.readBytes;
 import static com.google.common.io.Files.append;
 import static com.google.common.io.Files.readLines;
-import static java.util.Collections.shuffle;
 import static java.util.Collections.unmodifiableMap;
 
+/**
+ * A key / value blob storage engine.
+ * <p/>
+ * Each blob can be pointed to by many key entries. The storage works
+ * with an index file to map keys to blob SHA1 filenames, and each
+ * blob is stored as a GZIP-compressed file named after the content SHA1.
+ * <p/>
+ * Each public method may throw an <code>BlobStoreException</code> unchecked
+ * exception, which in turns wraps potential causal exceptions.
+ *
+ * @author Julien Ponge
+ * @see blob.store.BlobStoreException
+ * @see com.google.common.io.InputSupplier
+ * @see com.google.common.base.Optional
+ */
 public class BlobStore {
 
     private static final String INDEX_FILENAME = "index";
@@ -53,6 +67,11 @@ public class BlobStore {
     private final File indexFile;
     private final Map<String, String> index = newHashMap();
 
+    /**
+     * Constructs a new blob store in a directory.
+     *
+     * @param workingDirectory the working directory to be reused or created
+     */
     public BlobStore(File workingDirectory) {
         ensureValidWorkingDirectory(workingDirectory);
         this.workingDirectory = workingDirectory;
@@ -87,10 +106,22 @@ public class BlobStore {
         }
     }
 
+    /**
+     * Index accessor.
+     *
+     * @return an unmodifiable view over the index.
+     */
     public Map<String, String> getIndex() {
         return unmodifiableMap(index);
     }
 
+    /**
+     * Put a blob entry.
+     *
+     * @param key      the blob key
+     * @param supplier the blob input data supplier
+     * @see com.google.common.io.InputSupplier
+     */
     public void put(String key, InputSupplier<? extends InputStream> supplier) {
         File tempFile = new File(workingDirectory, "TEMP");
         File blobFile = null;
@@ -145,6 +176,13 @@ public class BlobStore {
         return key + INDEX_LINE_SEPARATOR + sha1 + "\n";
     }
 
+    /**
+     * Access a blob by key.
+     *
+     * @param key the blob key
+     * @return the input stream to extract the blob data, or if there is no blob for the key
+     * @see com.google.common.base.Optional
+     */
     public Optional<InputStream> get(String key) {
         if (index.containsKey(key)) {
             try {
@@ -184,6 +222,12 @@ public class BlobStore {
         }
     }
 
+    /**
+     * Remove a blob identified by a key. Does nothing if the key does not correspond
+     * to an indexed blob.
+     *
+     * @param key the blob key.
+     */
     public void remove(String key) {
         if (index.containsKey(key)) {
             String sha1 = index.get(key);
