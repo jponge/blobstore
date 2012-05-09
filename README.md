@@ -1,5 +1,7 @@
 # BlobStore
 
+[![Build Status](https://secure.travis-ci.org/jponge/blobstore.png)](http://travis-ci.org/jponge/blobstore)
+
 A local, non thread-safe implementation of a key / value blobs storage in Java.
 
 This is not mean to be bulletproof: this project purpose is to illustrate
